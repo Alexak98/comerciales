@@ -38,10 +38,10 @@
       gap: 10px;
     }
 
-    .header .title svg {
-      width: 20px;
-      height: 20px;
-      stroke: #8b93a8;
+    .header .title img {
+      height: 28px;
+      width: auto;
+      object-fit: contain;
     }
 
     .header .subtitle {
@@ -295,12 +295,11 @@
 
     table {
       width: 100%;
-      min-width: 1200px;
       border-collapse: collapse;
     }
 
     thead th {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -317,9 +316,32 @@
       min-width: 160px;
     }
 
-    thead th:nth-child(2) {
-      text-align: center;
-      min-width: 60px;
+    thead th .initials {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+      color: #e2e6f0;
+      letter-spacing: 0;
+    }
+
+    thead th .full-name {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: #5a6178;
+      text-transform: none;
+      letter-spacing: 0;
+      margin-top: 2px;
+    }
+
+    thead th .calls-count {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: #8b93a8;
+      text-transform: none;
+      letter-spacing: 0;
+      margin-top: 1px;
     }
 
     tbody tr {
@@ -332,7 +354,7 @@
     }
 
     tbody td {
-      padding: 14px 14px;
+      padding: 12px 14px;
       text-align: center;
       font-size: 14px;
       font-weight: 500;
@@ -344,10 +366,97 @@
       padding-left: 16px;
       color: #e2e6f0;
       font-weight: 500;
+      font-size: 13px;
     }
 
-    tbody td:nth-child(2) {
-      color: #8b93a8;
+    /* Fallos recurrentes cards */
+    .fallos-section {
+      padding: 0 32px 32px;
+    }
+
+    .fallos-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e2e6f0;
+      margin-bottom: 16px;
+    }
+
+    .fallos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .fallo-card {
+      background: #111827;
+      border: 1px solid #1e2640;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .fallo-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .fallo-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #1e2440;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      color: #e2e6f0;
+      flex-shrink: 0;
+    }
+
+    .fallo-card-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e2e6f0;
+    }
+
+    .fallo-card-sub {
+      font-size: 11px;
+      color: #5a6178;
+      margin-top: 2px;
+    }
+
+    .fallo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .fallo-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0d1120;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+
+    .fallo-item-name {
+      font-size: 13px;
+      color: #c8cdd8;
+    }
+
+    .fallo-item-score {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .fallo-empty {
+      font-size: 13px;
+      color: #34d399;
+      text-align: center;
+      padding: 12px;
     }
 
     /* Score color coding */
@@ -422,6 +531,7 @@
       .header { padding: 16px; }
       table { font-size: 12px; }
       .card { padding: 12px; }
+      .fallos-section { padding: 0 12px 24px; }
 
       .header-actions {
         flex-direction: column;
@@ -446,6 +556,10 @@
       .btn-refresh {
         align-self: flex-end;
       }
+
+      .fallos-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -454,9 +568,7 @@
     <div class="header-row">
       <div>
         <div class="title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
+          <img src="https://www.yurest.com/wp-content/uploads/2022/10/logotipo-yurest-rojo.png" alt="Yurest" style="height: 28px; width: auto;">
           Rendimiento C.I.E.R.R.E.S.
         </div>
         <div class="subtitle">Analisis biometrico sobre llamadas de venta</div>
@@ -499,26 +611,17 @@
       </div>
 
       <table>
-        <thead>
-          <tr>
-            <th>Comercial</th>
-            <th>Calls</th>
-            <th>Rapport</th>
-            <th>Situación Actual</th>
-            <th>Dolor</th>
-            <th>Prehandling</th>
-            <th>Limited Beliefs</th>
-            <th>Factores Compra</th>
-            <th>Deseo</th>
-            <th>Reality Check</th>
-            <th>Pitch</th>
-            <th>Objeciones</th>
-            <th>% Global</th>
-          </tr>
+        <thead id="tableHead">
         </thead>
         <tbody id="leaderboard">
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div class="fallos-section">
+    <div class="fallos-title">⚠ Fallos Recurrentes</div>
+    <div class="fallos-grid" id="fallosGrid">
     </div>
   </div>
 
@@ -728,32 +831,97 @@
       return 'score-low';
     }
 
-    function renderTable() {
-      const tbody = document.getElementById('leaderboard');
-      // Agregar datos con filtro de fechas y medias
-      const aggregated = getAggregatedData();
+    const PHASE_NAMES = [
+      'Rapport', 'Situación Actual', 'Dolor', 'Prehandling',
+      'Limited Beliefs', 'Factores Compra', 'Deseo',
+      'Reality Check', 'Pitch', 'Objeciones'
+    ];
 
+    function getInitials(name) {
+      return name.split(' ').map(w => w.charAt(0).toUpperCase()).join('');
+    }
+
+    function renderTable() {
+      const thead = document.getElementById('tableHead');
+      const tbody = document.getElementById('leaderboard');
+
+      const aggregated = getAggregatedData();
       const filtered = aggregated
         .sort((a, b) => b.pctGlobal - a.pctGlobal)
         .filter(d => selectedNames.has(d.name));
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;color:#5a6178;padding:24px;">No hay datos para el rango seleccionado</td></tr>';
+        thead.innerHTML = '';
+        tbody.innerHTML = '<tr><td style="text-align:center;color:#5a6178;padding:24px;">No hay datos para el rango seleccionado</td></tr>';
+        document.getElementById('fallosGrid').innerHTML = '';
         return;
       }
 
-      tbody.innerHTML = filtered.map(d => {
-        const scoresCells = d.scores.map(s =>
-          `<td><span class="score ${getScoreColor10(s)}">${s}</span><span class="score-max">/10</span></td>`
-        ).join('');
+      // THEAD: columnas = Fase | Comercial1 | Comercial2 | ...
+      thead.innerHTML = `<tr>
+        <th>Fase</th>
+        ${filtered.map(d => `
+          <th>
+            <span class="initials">${getInitials(d.name)}</span>
+            <span class="full-name">${d.name}</span>
+            <span class="calls-count">${d.calls} llamada${d.calls !== 1 ? 's' : ''}</span>
+          </th>
+        `).join('')}
+      </tr>`;
+
+      // TBODY: filas = cada fase + fila % Global
+      let rows = '';
+      PHASE_NAMES.forEach((phase, i) => {
+        rows += `<tr>
+          <td>${phase}</td>
+          ${filtered.map(d => {
+            const s = d.scores[i];
+            return `<td><span class="score ${getScoreColor10(s)}">${s}</span><span class="score-max">/10</span></td>`;
+          }).join('')}
+        </tr>`;
+      });
+
+      // Fila % Global
+      rows += `<tr style="border-top: 2px solid #1e2640;">
+        <td style="font-weight:700;">% Global</td>
+        ${filtered.map(d =>
+          `<td><span class="pct-badge ${getPctBadge(d.pctGlobal)}">${d.pctGlobal}%</span></td>`
+        ).join('')}
+      </tr>`;
+
+      tbody.innerHTML = rows;
+
+      // TARJETAS DE FALLOS RECURRENTES
+      const fallosGrid = document.getElementById('fallosGrid');
+      fallosGrid.innerHTML = filtered.map(d => {
+        const fallos = [];
+        d.scores.forEach((s, i) => {
+          if (s < 5) fallos.push({ phase: PHASE_NAMES[i], score: s });
+        });
+        fallos.sort((a, b) => a.score - b.score);
+
+        const fallosHtml = fallos.length > 0
+          ? `<div class="fallo-list">
+              ${fallos.map(f => `
+                <div class="fallo-item">
+                  <span class="fallo-item-name">${f.phase}</span>
+                  <span class="fallo-item-score score ${getScoreColor10(f.score)}">${f.score}/10</span>
+                </div>
+              `).join('')}
+            </div>`
+          : '<div class="fallo-empty">✓ Sin fallos recurrentes</div>';
 
         return `
-          <tr>
-            <td>${d.name}</td>
-            <td>${d.calls}</td>
-            ${scoresCells}
-            <td><span class="pct-badge ${getPctBadge(d.pctGlobal)}">${d.pctGlobal}%</span></td>
-          </tr>
+          <div class="fallo-card">
+            <div class="fallo-card-header">
+              <div class="fallo-avatar">${getInitials(d.name)}</div>
+              <div>
+                <div class="fallo-card-name">${d.name}</div>
+                <div class="fallo-card-sub">${fallos.length} fase${fallos.length !== 1 ? 's' : ''} por debajo de 5</div>
+              </div>
+            </div>
+            ${fallosHtml}
+          </div>
         `;
       }).join('');
     }
@@ -770,15 +938,20 @@
       disableMobile: true
     };
 
+    // Calcular primer y último día del mes actual
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
     flatpickr('#dateFrom', {
       ...fpConfig,
-      defaultDate: '2026-03-01',
+      defaultDate: firstDay,
       onChange: function() { renderTable(); }
     });
 
     flatpickr('#dateTo', {
       ...fpConfig,
-      defaultDate: '2026-03-25',
+      defaultDate: lastDay,
       onChange: function() { renderTable(); }
     });
   </script>
