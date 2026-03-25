@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rendimiento C.I.E.R.R.E.S.</title>
+  <link rel="icon" type="image/png" href="https://www.yurest.com/wp-content/uploads/2022/10/logotipo-yurest-rojo.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0e1a;
+      color: #c8cdd8;
+      min-height: 100vh;
+    }
+
+    .header {
+      padding: 24px 32px 8px;
+    }
+
+    .header .brand {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #5a6178;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .header .title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #e2e6f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header .title svg {
+      width: 20px;
+      height: 20px;
+      stroke: #8b93a8;
+    }
+
+    .header .subtitle {
+      font-size: 13px;
+      color: #5a6178;
+      margin-top: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: absolute;
+      top: 24px;
+      right: 32px;
+    }
+
+    .date-range {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .date-range label {
+      font-size: 12px;
+      color: #5a6178;
+    }
+
+    .date-range input[type="text"] {
+      background: #161b2e;
+      border: 1px solid #2a3050;
+      color: #c8cdd8;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+      width: 120px;
+    }
+
+    .date-range input[type="text"]:focus {
+      border-color: #4a5aaa;
+    }
+
+    .flatpickr-calendar.dark {
+      background: #111827;
+      border: 1px solid #2a3050;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .flatpickr-calendar.dark .flatpickr-months .flatpickr-month,
+    .flatpickr-calendar.dark .flatpickr-weekdays,
+    .flatpickr-calendar.dark .flatpickr-weekday {
+      background: #111827;
+      color: #8b93a8;
+    }
+
+    .flatpickr-calendar.dark .flatpickr-day {
+      color: #c8cdd8;
+    }
+
+    .flatpickr-calendar.dark .flatpickr-day:hover {
+      background: #1e2440;
+      border-color: #1e2440;
+    }
+
+    .flatpickr-calendar.dark .flatpickr-day.selected {
+      background: #4a5aaa;
+      border-color: #4a5aaa;
+      color: #fff;
+    }
+
+    .flatpickr-calendar.dark .flatpickr-day.today {
+      border-color: #fbbf24;
+    }
+
+    .date-range .separator {
+      color: #5a6178;
+      font-size: 13px;
+    }
+
+    .multiselect {
+      position: relative;
+      min-width: 200px;
+    }
+
+    .multiselect-toggle {
+      background: #161b2e;
+      border: 1px solid #2a3050;
+      color: #c8cdd8;
+      padding: 7px 32px 7px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      width: 100%;
+      text-align: left;
+      position: relative;
+      transition: border-color 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .multiselect-toggle::after {
+      content: '';
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid #5a6178;
+      transition: transform 0.2s;
+    }
+
+    .multiselect.open .multiselect-toggle::after {
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    .multiselect-toggle:hover,
+    .multiselect.open .multiselect-toggle {
+      border-color: #4a5aaa;
+    }
+
+    .multiselect-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #161b2e;
+      border: 1px solid #2a3050;
+      border-radius: 8px;
+      padding: 6px 0;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .multiselect.open .multiselect-dropdown {
+      display: block;
+    }
+
+    .multiselect-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #c8cdd8;
+      transition: background 0.15s;
+    }
+
+    .multiselect-item:hover {
+      background: #1e2440;
+    }
+
+    .multiselect-item input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid #3a4060;
+      border-radius: 4px;
+      background: #0d1120;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .multiselect-item input[type="checkbox"]:checked {
+      background: #4a5aaa;
+      border-color: #4a5aaa;
+    }
+
+    .multiselect-item input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 5px;
+      height: 9px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .multiselect-divider {
+      height: 1px;
+      background: #2a3050;
+      margin: 4px 0;
+    }
+
+    .btn-refresh {
+      background: #161b2e;
+      border: 1px solid #2a3050;
+      color: #c8cdd8;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-refresh:hover {
+      background: #1e2440;
+    }
+
+    .container {
+      padding: 24px 32px;
+    }
+
+    .card {
+      background: #111827;
+      border: 1px solid #1e2640;
+      border-radius: 12px;
+      padding: 24px;
+      overflow-x: auto;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e2e6f0;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: #5a6178;
+      margin-top: 4px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1200px;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #5a6178;
+      padding: 12px 14px;
+      text-align: center;
+      border-bottom: 1px solid #1e2640;
+      white-space: nowrap;
+    }
+
+    thead th:first-child {
+      text-align: left;
+      padding-left: 16px;
+      min-width: 160px;
+    }
+
+    thead th:nth-child(2) {
+      text-align: center;
+      min-width: 60px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #141a2e;
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background: #161d30;
+    }
+
+    tbody td {
+      padding: 14px 14px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    tbody td:first-child {
+      text-align: left;
+      padding-left: 16px;
+      color: #e2e6f0;
+      font-weight: 500;
+    }
+
+    tbody td:nth-child(2) {
+      color: #8b93a8;
+    }
+
+    /* Score color coding */
+    .score {
+      display: inline-block;
+      min-width: 32px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .score-high { color: #34d399; }
+    .score-mid { color: #fbbf24; }
+    .score-low { color: #f87171; }
+    .score-orange { color: #fb923c; }
+
+    .score-max {
+      font-size: 10px;
+      color: #5a6178;
+      font-weight: 400;
+      margin-left: 1px;
+    }
+
+    .total-cell {
+      font-weight: 700;
+      color: #fbbf24;
+    }
+
+    .total-max {
+      font-size: 11px;
+      color: #5a6178;
+      font-weight: 400;
+    }
+
+    .pct-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .pct-green { background: #064e3b; color: #34d399; }
+    .pct-yellow { background: #422006; color: #fbbf24; }
+    .pct-orange { background: #431407; color: #fb923c; }
+    .pct-red { background: #450a0a; color: #f87171; }
+
+    .cierre-cell {
+      color: #8b93a8;
+      font-weight: 500;
+    }
+
+    .date-cell {
+      color: #5a6178;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .container { padding: 12px; }
+      .header { padding: 16px; }
+      table { font-size: 12px; }
+      .card { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div style="position: relative;">
+    <div class="header">
+      <!-- brand removed -->
+      <div class="title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Rendimiento C.I.E.R.R.E.S.
+      </div>
+      <div class="subtitle">Analisis biometrico sobre llamadas de venta</div>
+    </div>
+    <div class="header-actions">
+      <div class="multiselect" id="multiselect">
+        <button type="button" class="multiselect-toggle" id="multiselectToggle">Todos los comerciales</button>
+        <div class="multiselect-dropdown" id="multiselectDropdown">
+          <label class="multiselect-item">
+            <input type="checkbox" id="checkAll" checked>
+            <span>Seleccionar todos</span>
+          </label>
+          <div class="multiselect-divider"></div>
+          <div id="multiselectOptions"></div>
+        </div>
+      </div>
+      <div class="date-range">
+        <label>Desde</label>
+        <input type="text" id="dateFrom" placeholder="01/03/2026" readonly>
+        <span class="separator">—</span>
+        <label>Hasta</label>
+        <input type="text" id="dateTo" placeholder="25/03/2026" readonly>
+      </div>
+      <button class="btn-refresh" onclick="location.reload()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Global Leaderboard</div>
+          <div class="card-subtitle">Clasificación basada en las 10 fases de venta (puntuación sobre 10) y % global.</div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Comercial</th>
+            <th>Calls</th>
+            <th>Rapport</th>
+            <th>Situación Actual</th>
+            <th>Dolor</th>
+            <th>Prehandling</th>
+            <th>Limited Beliefs</th>
+            <th>Factores Compra</th>
+            <th>Deseo</th>
+            <th>Reality Check</th>
+            <th>Pitch</th>
+            <th>Objeciones</th>
+            <th>% Global</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const DATA_WEBHOOK_URL = 'https://n8n-soporte.data.yurest.dev/webhook/0309071e-a7b7-45e4-a5f5-5b44ee75dabf';
+    const COMERCIALES_WEBHOOK_URL = 'https://n8n-soporte.data.yurest.dev/webhook/657de30f-98e4-42c1-87aa-88168bbc6eb8';
+
+    let rawRows = [];       // todas las filas sin agrupar
+    let allNames = [];
+    let selectedNames = new Set();
+    let comercialesMap = {}; // id → nombre
+
+    // Parsear fecha del sheet (acepta dd/mm/yyyy, yyyy-mm-dd, ISO, etc.)
+    function parseDate(str) {
+      if (!str) return null;
+      // dd/mm/yyyy
+      const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (dmy) return new Date(parseInt(dmy[3]), parseInt(dmy[2]) - 1, parseInt(dmy[1]));
+      // yyyy-mm-dd o ISO
+      const d = new Date(str);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    // Filtrar filas por rango de fechas y agrupar por comercial con medias
+    function getAggregatedData() {
+      const fromInput = document.getElementById('dateFrom');
+      const toInput = document.getElementById('dateTo');
+      const dateFrom = fromInput._flatpickr ? fromInput._flatpickr.selectedDates[0] : null;
+      const dateTo = toInput._flatpickr ? toInput._flatpickr.selectedDates[0] : null;
+
+      // Normalizar fechas a inicio/fin de día
+      if (dateFrom) dateFrom.setHours(0, 0, 0, 0);
+      if (dateTo) dateTo.setHours(23, 59, 59, 999);
+
+      // Filtrar por fecha
+      const filtered = rawRows.filter(row => {
+        if (!dateFrom && !dateTo) return true;
+        const rowDate = parseDate(row.fecha);
+        if (!rowDate) return true; // si no tiene fecha, incluir
+        if (dateFrom && rowDate < dateFrom) return false;
+        if (dateTo && rowDate > dateTo) return false;
+        return true;
+      });
+
+      // Agrupar por comercial (por nombre resuelto)
+      const groups = {};
+      filtered.forEach(row => {
+        const idComercial = row['id comercial'];
+        const name = comercialesMap[idComercial] || row.nombre || row.name || row.closer || 'Desconocido';
+        if (!groups[name]) {
+          groups[name] = { name, entries: [] };
+        }
+        groups[name].entries.push({
+          scores: [
+            parseFloat(row.fase_1_rapport || 0),
+            parseFloat(row.fase_2_situacion_actual || 0),
+            parseFloat(row.fase_3_dolor || 0),
+            parseFloat(row.fase_4_prehandling || 0),
+            parseFloat(row.fase_5_limited_beliefs || 0),
+            parseFloat(row.fase_6_factores_compra || 0),
+            parseFloat(row.fase_7_deseo || 0),
+            parseFloat(row.fase_8_reality_check || 0),
+            parseFloat(row.fase_9_pitch || 0),
+            parseFloat(row.fase_10_objeciones || 0)
+          ]
+        });
+      });
+
+      // Calcular medias por comercial
+      return Object.values(groups).map(g => {
+        const count = g.entries.length;
+        const avgScores = Array.from({ length: 10 }, (_, i) => {
+          const sum = g.entries.reduce((acc, e) => acc + e.scores[i], 0);
+          return parseFloat((sum / count).toFixed(1));
+        });
+        // % global = suma de medias de las 10 fases (max 100)
+        const totalAvg = avgScores.reduce((a, b) => a + b, 0);
+        const pctGlobal = parseFloat(((totalAvg / 100) * 100).toFixed(1));
+        return {
+          name: g.name,
+          calls: count,
+          scores: avgScores,
+          pctGlobal
+        };
+      });
+    }
+
+    async function loadData() {
+      try {
+        // 1. Cargar tabla de comerciales para resolver IDs
+        const resCom = await fetch(COMERCIALES_WEBHOOK_URL, { method: 'GET' });
+        const comerciales = await resCom.json();
+        comercialesMap = {};
+        (Array.isArray(comerciales) ? comerciales : [comerciales]).forEach(c => {
+          comercialesMap[c.id] = c.nombre;
+        });
+
+        // 2. Cargar datos principales (todas las filas)
+        const res = await fetch(DATA_WEBHOOK_URL, { method: 'GET' });
+        const raw = await res.json();
+        rawRows = Array.isArray(raw) ? raw : [raw];
+
+        // Extraer nombres únicos para el multiselect
+        allNames = [...new Set(rawRows.map(row => {
+          const idComercial = row['id comercial'];
+          return comercialesMap[idComercial] || row.nombre || row.name || row.closer || 'Desconocido';
+        }))];
+        selectedNames = new Set(allNames);
+
+        // Poblar el multiselect
+        const optionsContainer = document.getElementById('multiselectOptions');
+        optionsContainer.innerHTML = '';
+        allNames.forEach(name => {
+          const label = document.createElement('label');
+          label.className = 'multiselect-item';
+          label.innerHTML = `<input type="checkbox" value="${name}" checked><span>${name}</span>`;
+          optionsContainer.appendChild(label);
+        });
+
+        document.getElementById('checkAll').checked = true;
+        initMultiselect();
+        renderTable();
+      } catch (err) {
+        console.error('Error cargando datos:', err);
+        document.getElementById('leaderboard').innerHTML =
+          '<tr><td colspan="13" style="text-align:center;color:#f87171;padding:24px;">Error al cargar datos del servidor</td></tr>';
+      }
+    }
+
+    function initMultiselect() {
+      const container = document.getElementById('multiselect');
+      const toggle = document.getElementById('multiselectToggle');
+      const checkAll = document.getElementById('checkAll');
+      const optionsContainer = document.getElementById('multiselectOptions');
+      const checkboxes = () => optionsContainer.querySelectorAll('input[type="checkbox"]');
+
+      // Toggle dropdown
+      toggle.addEventListener('click', () => {
+        container.classList.toggle('open');
+      });
+
+      // Close on outside click
+      document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) {
+          container.classList.remove('open');
+        }
+      });
+
+      // Select all
+      checkAll.addEventListener('change', () => {
+        const checked = checkAll.checked;
+        checkboxes().forEach(cb => { cb.checked = checked; });
+        selectedNames.clear();
+        if (checked) {
+          allNames.forEach(name => selectedNames.add(name));
+        }
+        updateToggleLabel();
+        renderTable();
+      });
+
+      // Individual checkboxes
+      optionsContainer.addEventListener('change', (e) => {
+        if (e.target.type === 'checkbox') {
+          if (e.target.checked) {
+            selectedNames.add(e.target.value);
+          } else {
+            selectedNames.delete(e.target.value);
+          }
+          checkAll.checked = selectedNames.size === allNames.length;
+          updateToggleLabel();
+          renderTable();
+        }
+      });
+    }
+
+    function updateToggleLabel() {
+      const toggle = document.getElementById('multiselectToggle');
+      if (selectedNames.size === 0) {
+        toggle.textContent = 'Ningun comercial';
+      } else if (selectedNames.size === allNames.length) {
+        toggle.textContent = 'Todos los comerciales';
+      } else if (selectedNames.size <= 2) {
+        toggle.textContent = [...selectedNames].join(', ');
+      } else {
+        toggle.textContent = `${selectedNames.size} comerciales`;
+      }
+    }
+
+    function getScoreColor(score) {
+      if (score >= 8.0) return 'score-high';
+      if (score >= 7.0) return 'score-mid';
+      if (score >= 5.0) return 'score-orange';
+      return 'score-low';
+    }
+
+    function getPctBadge(pct) {
+      if (pct >= 80) return 'pct-green';
+      if (pct >= 65) return 'pct-yellow';
+      if (pct >= 50) return 'pct-orange';
+      return 'pct-red';
+    }
+
+    function getScoreColor10(score) {
+      if (score >= 8) return 'score-high';
+      if (score >= 6) return 'score-mid';
+      if (score >= 4) return 'score-orange';
+      return 'score-low';
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('leaderboard');
+      // Agregar datos con filtro de fechas y medias
+      const aggregated = getAggregatedData();
+
+      const filtered = aggregated
+        .sort((a, b) => b.pctGlobal - a.pctGlobal)
+        .filter(d => selectedNames.has(d.name));
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;color:#5a6178;padding:24px;">No hay datos para el rango seleccionado</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(d => {
+        const scoresCells = d.scores.map(s =>
+          `<td><span class="score ${getScoreColor10(s)}">${s}</span><span class="score-max">/10</span></td>`
+        ).join('');
+
+        return `
+          <tr>
+            <td>${d.name}</td>
+            <td>${d.calls}</td>
+            ${scoresCells}
+            <td><span class="pct-badge ${getPctBadge(d.pctGlobal)}">${d.pctGlobal}%</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    loadData();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+  <script>
+    const fpConfig = {
+      locale: 'es',
+      dateFormat: 'd/m/Y',
+      theme: 'dark',
+      disableMobile: true
+    };
+
+    flatpickr('#dateFrom', {
+      ...fpConfig,
+      defaultDate: '2026-03-01',
+      onChange: function() { renderTable(); }
+    });
+
+    flatpickr('#dateTo', {
+      ...fpConfig,
+      defaultDate: '2026-03-25',
+      onChange: function() { renderTable(); }
+    });
+  </script>
+</body>
+</html>
