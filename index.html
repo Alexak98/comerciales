@@ -619,20 +619,13 @@
     </div>
   </div>
 
-  <div class="fallos-section">
-    <div class="fallos-title">⚠ Fallos Recurrentes</div>
-    <div class="fallos-grid" id="fallosGrid">
-    </div>
-  </div>
 
   <script>
     const DATA_WEBHOOK_URL = 'https://n8n-soporte.data.yurest.dev/webhook/0309071e-a7b7-45e4-a5f5-5b44ee75dabf';
-    const COMERCIALES_WEBHOOK_URL = 'https://n8n-soporte.data.yurest.dev/webhook/657de30f-98e4-42c1-87aa-88168bbc6eb8';
 
     let rawRows = [];       // todas las filas sin agrupar
     let allNames = [];
     let selectedNames = new Set();
-    let comercialesMap = {}; // id → nombre
 
     // Parsear fecha del sheet (acepta dd/mm/yyyy, yyyy-mm-dd, ISO, etc.)
     function parseDate(str) {
@@ -666,11 +659,10 @@
         return true;
       });
 
-      // Agrupar por comercial (por nombre resuelto)
+      // Agrupar por comercial (usar id comercial como nombre, o campos alternativos)
       const groups = {};
       filtered.forEach(row => {
-        const idComercial = row['id comercial'];
-        const name = comercialesMap[idComercial] || row.nombre || row.name || row.closer || 'Desconocido';
+        const name = row.comercial || row['id comercial'] || row.nombre || 'Desconocido';
         if (!groups[name]) {
           groups[name] = { name, entries: [] };
         }
@@ -711,24 +703,15 @@
 
     async function loadData() {
       try {
-        // 1. Cargar tabla de comerciales para resolver IDs
-        const resCom = await fetch(COMERCIALES_WEBHOOK_URL, { method: 'GET' });
-        const comerciales = await resCom.json();
-        comercialesMap = {};
-        (Array.isArray(comerciales) ? comerciales : [comerciales]).forEach(c => {
-          comercialesMap[c.id] = c.nombre;
-        });
-
-        // 2. Cargar datos principales (todas las filas)
+        // Cargar datos principales (todas las filas)
         const res = await fetch(DATA_WEBHOOK_URL, { method: 'GET' });
         const raw = await res.json();
         rawRows = Array.isArray(raw) ? raw : [raw];
 
-        // Extraer nombres únicos para el multiselect
+        // Extraer nombres únicos de comerciales directamente de los datos
         allNames = [...new Set(rawRows.map(row => {
-          const idComercial = row['id comercial'];
-          return comercialesMap[idComercial] || row.nombre || row.name || row.closer || 'Desconocido';
-        }))];
+          return row.comercial || row['id comercial'] || row.nombre || 'Desconocido';
+        }))].sort();
         selectedNames = new Set(allNames);
 
         // Poblar el multiselect
@@ -853,7 +836,6 @@
       if (filtered.length === 0) {
         thead.innerHTML = '';
         tbody.innerHTML = '<tr><td style="text-align:center;color:#5a6178;padding:24px;">No hay datos para el rango seleccionado</td></tr>';
-        document.getElementById('fallosGrid').innerHTML = '';
         return;
       }
 
@@ -891,39 +873,6 @@
 
       tbody.innerHTML = rows;
 
-      // TARJETAS DE FALLOS RECURRENTES
-      const fallosGrid = document.getElementById('fallosGrid');
-      fallosGrid.innerHTML = filtered.map(d => {
-        const fallos = [];
-        d.scores.forEach((s, i) => {
-          if (s < 5) fallos.push({ phase: PHASE_NAMES[i], score: s });
-        });
-        fallos.sort((a, b) => a.score - b.score);
-
-        const fallosHtml = fallos.length > 0
-          ? `<div class="fallo-list">
-              ${fallos.map(f => `
-                <div class="fallo-item">
-                  <span class="fallo-item-name">${f.phase}</span>
-                  <span class="fallo-item-score score ${getScoreColor10(f.score)}">${f.score}/10</span>
-                </div>
-              `).join('')}
-            </div>`
-          : '<div class="fallo-empty">✓ Sin fallos recurrentes</div>';
-
-        return `
-          <div class="fallo-card">
-            <div class="fallo-card-header">
-              <div class="fallo-avatar">${getInitials(d.name)}</div>
-              <div>
-                <div class="fallo-card-name">${d.name}</div>
-                <div class="fallo-card-sub">${fallos.length} fase${fallos.length !== 1 ? 's' : ''} por debajo de 5</div>
-              </div>
-            </div>
-            ${fallosHtml}
-          </div>
-        `;
-      }).join('');
     }
 
     loadData();
