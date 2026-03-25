@@ -50,13 +50,18 @@
       margin-top: 4px;
     }
 
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
     .header-actions {
       display: flex;
       align-items: center;
       gap: 12px;
-      position: absolute;
-      top: 24px;
-      right: 32px;
+      flex-shrink: 0;
     }
 
     .date-range {
@@ -401,27 +406,62 @@
       font-size: 13px;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1100px) {
+      .header-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .header-actions {
+        flex-wrap: wrap;
+      }
+    }
+
+    @media (max-width: 600px) {
       .container { padding: 12px; }
       .header { padding: 16px; }
       table { font-size: 12px; }
       .card { padding: 12px; }
+
+      .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .date-range {
+        flex-wrap: wrap;
+      }
+
+      .date-range input[type="text"] {
+        flex: 1;
+        min-width: 100px;
+      }
+
+      .multiselect {
+        min-width: unset;
+        width: 100%;
+      }
+
+      .btn-refresh {
+        align-self: flex-end;
+      }
     }
   </style>
 </head>
 <body>
-  <div style="position: relative;">
-    <div class="header">
-      <!-- brand removed -->
-      <div class="title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        Rendimiento C.I.E.R.R.E.S.
+  <div class="header">
+    <div class="header-row">
+      <div>
+        <div class="title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Rendimiento C.I.E.R.R.E.S.
+        </div>
+        <div class="subtitle">Analisis biometrico sobre llamadas de venta</div>
       </div>
-      <div class="subtitle">Analisis biometrico sobre llamadas de venta</div>
-    </div>
-    <div class="header-actions">
+      <div class="header-actions">
       <div class="multiselect" id="multiselect">
         <button type="button" class="multiselect-toggle" id="multiselectToggle">Todos los comerciales</button>
         <div class="multiselect-dropdown" id="multiselectDropdown">
@@ -445,6 +485,7 @@
           <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
         </svg>
       </button>
+      </div>
     </div>
   </div>
 
