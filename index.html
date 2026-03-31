@@ -630,6 +630,14 @@
   <script>
     const DATA_WEBHOOK_URL = 'https://n8n-soporte.data.yurest.dev/webhook/0309071e-a7b7-45e4-a5f5-5b44ee75dabf';
 
+    // Webhook de puntos clave a mejorar por comercial (nombre en minúsculas como key)
+    const MEJORAS_WEBHOOKS = {
+      'santiago andres': 'https://n8n-soporte.data.yurest.dev/webhook/4cc183e0-950a-4574-9727-8af18687add2',
+      'ivan': 'https://n8n-soporte.data.yurest.dev/webhook/6d368f51-26ac-4791-81b5-ea8588f7f213',
+      'pedro': 'https://n8n-soporte.data.yurest.dev/webhook/6e50c628-563c-48bf-b30a-0e3729a70d01',
+      'borja': 'https://n8n-soporte.data.yurest.dev/webhook/5bfcdf61-fc9b-427d-bed9-30ceac791afe',
+    };
+
     let rawRows = [];       // todas las filas sin agrupar
     let allNames = [];
     let selectedNames = new Set();
@@ -892,16 +900,10 @@
         return;
       }
 
-      grid.innerHTML = data.map(d => {
-        // Obtener las 3 fases con peor puntuación
-        const phasesWithScores = PHASE_NAMES.map((name, i) => ({
-          name,
-          score: d.scores[i]
-        }));
-        phasesWithScores.sort((a, b) => a.score - b.score);
-        const worst3 = phasesWithScores.slice(0, 3);
-
+      // Generar tarjetas con placeholder de carga para cada comercial
+      grid.innerHTML = data.map((d, idx) => {
         const initials = getInitials(d.name);
+        const safeId = 'fallo-list-' + idx;
 
         return `
           <div class="fallo-card">
@@ -912,17 +914,148 @@
                 <div class="fallo-card-sub">${d.calls} llamada${d.calls !== 1 ? 's' : ''} · ${d.pctGlobal}% global</div>
               </div>
             </div>
-            <div class="fallo-list">
-              ${worst3.map(f => `
-                <div class="fallo-item">
-                  <span class="fallo-item-name">${f.name}</span>
-                  <span class="fallo-item-score ${getScoreColor10(f.score)}">${f.score}<span class="score-max">/10</span></span>
-                </div>
-              `).join('')}
+            <div class="fallo-list" id="${safeId}">
+              <div style="color:#5a6178;text-align:center;padding:12px;font-size:13px;">Cargando puntos clave...</div>
             </div>
           </div>
         `;
       }).join('');
+
+      // Llamar al webhook para cada comercial en paralelo
+      data.forEach((d, idx) => {
+        loadMejorasComercial(d.name, 'fallo-list-' + idx);
+      });
+    }
+
+    async function loadMejorasComercial(comercialName, containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      // Buscar el webhook específico del comercial (comparación flexible, sin tildes)
+      const normalize = str => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const nameLower = normalize(comercialName);
+      const webhookUrl = Object.entries(MEJORAS_WEBHOOKS).find(([key]) => nameLower.includes(normalize(key)) || normalize(key).includes(nameLower));
+
+      if (!webhookUrl) {
+        container.innerHTML = '<div style="color:#5a6178;text-align:center;padding:12px;font-size:13px;">Sin webhook configurado</div>';
+        return;
+      }
+
+      try {
+        const res = await fetch(webhookUrl[1], { method: 'GET' });
+        const raw = await res.json();
+
+        // Extraer los 3 puntos de mejora del response de ChatGPT
+        let puntos = parseMejoras(raw);
+
+        if (puntos.length === 0) {
+          container.innerHTML = '<div class="fallo-empty">Sin puntos clave disponibles</div>';
+          return;
+        }
+
+        container.innerHTML = puntos.slice(0, 3).map((punto, i) => `
+          <div class="fallo-item">
+            <span class="fallo-item-number" style="color:#4a5aaa;font-weight:700;font-size:14px;margin-right:8px;flex-shrink:0;">${i + 1}</span>
+            <span class="fallo-item-name" style="flex:1;">${punto}</span>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        console.error('Error cargando mejoras de ' + comercialName + ':', err);
+        container.innerHTML = '<div style="color:#f87171;text-align:center;padding:12px;font-size:13px;">Error al cargar puntos clave</div>';
+      }
+    }
+
+    function parseMejoras(raw) {
+      const items = Array.isArray(raw) ? raw : [raw];
+
+      // Formato OpenAI/n8n: output[].content[].text con JSON dentro
+      // Estructura: [{ output: [{ content: [{ text: "{ \"mejoras\": [...] }" }] }] }]
+      for (const item of items) {
+        const textContent = extractAIText(item);
+        if (textContent) {
+          const parsed = parseJSONFromText(textContent);
+          if (parsed && Array.isArray(parsed.mejoras)) return parsed.mejoras;
+          if (parsed && Array.isArray(parsed.puntos)) return parsed.puntos;
+          if (parsed && Array.isArray(parsed.points)) return parsed.points;
+        }
+      }
+
+      const data = items[0] || {};
+
+      // Formato directo: campo "mejoras" o "puntos" como array de strings
+      if (Array.isArray(data.mejoras)) return data.mejoras;
+      if (Array.isArray(data.puntos)) return data.puntos;
+      if (Array.isArray(data.points)) return data.points;
+
+      // Formato texto plano con saltos de linea o numeración
+      const texto = data.mejoras || data.puntos || data.output || data.text || data.response || data.message || '';
+      if (typeof texto === 'string' && texto.length > 0) {
+        const lines = texto
+          .split(/\n|(?=\d+[\.\)\-]\s)/)
+          .map(l => l.replace(/^[\s\-\d\.\)]+/, '').trim())
+          .filter(l => l.length > 0);
+        if (lines.length > 0) return lines.slice(0, 3);
+      }
+
+      // Formato campos numerados: punto_1, punto_2, punto_3
+      const puntos = [];
+      for (let i = 1; i <= 3; i++) {
+        const v = data[`punto_${i}`] || data[`mejora_${i}`] || data[`point_${i}`] || '';
+        if (v) puntos.push(v);
+      }
+      if (puntos.length > 0) return puntos;
+
+      // Array directo de strings u objetos
+      if (Array.isArray(raw)) {
+        const strs = raw.filter(item => typeof item === 'string');
+        if (strs.length > 0) return strs.slice(0, 3);
+        return raw.slice(0, 3).map(item =>
+          item.punto || item.mejora || item.text || item.message || JSON.stringify(item)
+        );
+      }
+
+      return [];
+    }
+
+    // Extraer texto de respuesta IA (OpenAI/ChatGPT via n8n)
+    // Soporta: { output: [{ content: [{ text: "..." }] }] }
+    function extractAIText(item) {
+      try {
+        // output[0].content[0].text
+        if (item.output && Array.isArray(item.output)) {
+          for (const msg of item.output) {
+            if (msg.content && Array.isArray(msg.content)) {
+              for (const block of msg.content) {
+                if (block.text && typeof block.text === 'string') {
+                  return block.text;
+                }
+              }
+            }
+          }
+        }
+        // Campos directos de texto
+        if (typeof item.text === 'string') return item.text;
+        if (typeof item.message === 'string') return item.message;
+        if (typeof item.response === 'string') return item.response;
+      } catch (e) {}
+      return null;
+    }
+
+    // Parsear JSON desde texto (maneja ```json ... ``` y texto suelto)
+    function parseJSONFromText(text) {
+      try {
+        // Limpiar bloques de código markdown
+        let clean = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+        return JSON.parse(clean);
+      } catch (e) {
+        // Intentar encontrar JSON dentro del texto
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) {
+          try { return JSON.parse(match[0]); } catch (e2) {}
+        }
+      }
+      return null;
     }
 
     loadData();
