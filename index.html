@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rendimiento C.I.E.R.R.E.S.</title>
+  <title>Rendimiento Ventas</title>
   <link rel="icon" type="image/png" href="https://www.yurest.com/wp-content/uploads/2022/10/logotipo-yurest-rojo.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
@@ -569,7 +569,7 @@
       <div>
         <div class="title">
           <img src="https://www.yurest.com/wp-content/uploads/2022/10/logotipo-yurest-rojo.png" alt="Yurest" style="height: 28px; width: auto;">
-          Rendimiento C.I.E.R.R.E.S.
+          Rendimiento Ventas
         </div>
         <div class="subtitle">Analisis biometrico sobre llamadas de venta</div>
       </div>
@@ -619,6 +619,13 @@
     </div>
   </div>
 
+
+  <div class="fallos-section" id="fallosSection">
+    <div class="fallos-title">Puntos Clave a Mejorar</div>
+    <div class="fallos-grid" id="fallosGrid">
+      <!-- Cards generadas dinamicamente -->
+    </div>
+  </div>
 
   <script>
     const DATA_WEBHOOK_URL = 'https://n8n-soporte.data.yurest.dev/webhook/0309071e-a7b7-45e4-a5f5-5b44ee75dabf';
@@ -873,6 +880,49 @@
 
       tbody.innerHTML = rows;
 
+      // Renderizar tarjetas de puntos clave a mejorar
+      renderFallosCards(filtered);
+    }
+
+    function renderFallosCards(data) {
+      const grid = document.getElementById('fallosGrid');
+
+      if (!data || data.length === 0) {
+        grid.innerHTML = '<div style="color:#5a6178;padding:12px;">No hay datos disponibles</div>';
+        return;
+      }
+
+      grid.innerHTML = data.map(d => {
+        // Obtener las 3 fases con peor puntuación
+        const phasesWithScores = PHASE_NAMES.map((name, i) => ({
+          name,
+          score: d.scores[i]
+        }));
+        phasesWithScores.sort((a, b) => a.score - b.score);
+        const worst3 = phasesWithScores.slice(0, 3);
+
+        const initials = getInitials(d.name);
+
+        return `
+          <div class="fallo-card">
+            <div class="fallo-card-header">
+              <div class="fallo-avatar">${initials}</div>
+              <div>
+                <div class="fallo-card-name">${d.name}</div>
+                <div class="fallo-card-sub">${d.calls} llamada${d.calls !== 1 ? 's' : ''} · ${d.pctGlobal}% global</div>
+              </div>
+            </div>
+            <div class="fallo-list">
+              ${worst3.map(f => `
+                <div class="fallo-item">
+                  <span class="fallo-item-name">${f.name}</span>
+                  <span class="fallo-item-score ${getScoreColor10(f.score)}">${f.score}<span class="score-max">/10</span></span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     loadData();
